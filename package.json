@@ -1,0 +1,16 @@
+{
+  "name": "discordldap",
+  "version": "1.0.0",
+  "description": "An automatic system that synchronizes users between an LDAP and a Discord Guild automatically.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "Federico Galbiati",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^12.5.1",
+    "dotenv": "^8.2.0"
+  }
+}
