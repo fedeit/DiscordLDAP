@@ -1,3 +1,2 @@
-require('dotenv').config()
-const discord = require('./src/discord_integration.js')
-discord.initialize()
+require('dotenv-defaults').config()
+require('./src/discord_ldap_sync.js')
