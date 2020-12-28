@@ -87,7 +87,7 @@ exports.getUserInfo = async (uid) => {
 	const options = {
 		filter: '(uid=' + uid + ')',
 		scope: 'sub',
-		attributes: ['dn', 'registeredAddress']
+		attributes: ['dn', 'registeredAddress', 'uid']
 	};
 	// Get users from LDAP
 	let user = await searchLDAP(process.env.LDAP_GROUP, options)

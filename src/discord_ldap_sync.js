@@ -47,12 +47,10 @@ let startSync = () => {
 	discord.getMembers(async (discordUsers) => {
 		let ldapResponse = await ldap.getUsers(true);
 		let toInvite = exports.findToAddDiscordUsers(ldapResponse);
-		//toInvite = removeInvited(toInvite)
-		//sendInvites(toInvite)
+		sendInvites(toInvite)
 		let toRemove = exports.findToRemoveDiscordUsers(discordUsers, ldapResponse);
 		toRemove = filterSet(toRemove, whitelistedUsers)
 		kickUsers(toRemove)
-		console.log(toRemove)
 	});
 }
 
@@ -78,11 +76,16 @@ exports.findToRemoveDiscordUsers = (discordUsers, ldapUsers) => {
 }
 
 let sendInvites = (people) => {
-	for (person in people) {
-		// Email the person's email
-		discord.inviteMember(people.email, (token) => {
-			// Add to db
-			db.registerInvite(person.uid, token)
+	for (const person of people) {
+		if (person.email === undefined || person.uid === undefined) { continue; }
+		db.isInviteSent(person.uid, (isSent) => {
+			if (!isSent) {
+				// Email the person's email
+				discord.inviteMember(person.email, (token) => {
+					// Add to db
+					db.registerInvite(person.uid, token)
+				})
+			}
 		})
 	}
 }
@@ -91,7 +94,7 @@ let kickUsers = (people) => {
 	people.forEach((person) => {
 		console.log(typeof person)
 		// Email the person's email
-		discord.inviteMember(person)
+		discord.kickMember(person)
 	})
 }
 
