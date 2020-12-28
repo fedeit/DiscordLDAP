@@ -31,7 +31,7 @@ exports.sendInvite = async (inviteLink, userEmail) => {
 let readHTMLFile = function(path) {
   // Try loading the content of the html template
   try {
-    return fs.readFileSync(path, {encoding: 'utf-8'};
+    return fs.readFileSync(path, {encoding: 'utf-8'});
   } catch (error) {
     console.log(error);
   }
