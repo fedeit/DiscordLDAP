@@ -4,7 +4,8 @@ const Discord = require('discord.js');
 var guild;
 var client;
 
-exports.initialize = () => {
+exports.initialize = (callback) => {
+	console.log("Connecting to Discord API")
 	// Add intent for retrieving discord guild
 	let intents = new Discord.Intents(Discord.Intents.NON_PRIVILEGED);
 	intents.add('GUILD_MEMBERS');
@@ -14,9 +15,13 @@ exports.initialize = () => {
 	client.login(process.env.DISCORD_BOT_TOKEN);
 	// When logged in, retrieve the guild
 	client.on('ready', () => {
-		console.log(`Logged in as ${client.user.tag}!`);
+		console.info(`Connected to Discord! Logged in as ${client.user.tag}!`);
 		// Get the guild
 		guild = client.guilds.cache.get(process.env.DISCORD_GUILD);
+		callback(true)
+	}).on('error', (error) => {
+		console.error(error)
+		callback(false)
 	});
 }
 
@@ -29,7 +34,7 @@ exports.getMembers = (callback) => {
 		.filter( member => !member.user.bot )
 		.map( member => member.user );
 		// Callback with users
-		console.log(users)
+		if (process.env.FULL_LOGGING == 'true') { console.info(users) }
 		callback(users);
 	})
 	.catch(console.error);
@@ -46,8 +51,10 @@ exports.kickMember = (memberId) => {
 }
 
 exports.inviteMember = (email) => {
+	console.info(`Inviting member ${email} to Discord`)
 	// Get the base channel where to add people
 	const channel = guild.channels.resolve(process.env.DISCORD_CHANNEL);
+	console.info(`Found channel ${process.env.DISCORD_CHANNEL} to add user`)
 	// Define options
 	let options = {
 		maxAge: process.env.MAX_INVITE_AGE,
@@ -55,11 +62,12 @@ exports.inviteMember = (email) => {
 		unique: true,
 		reason: `You were added to the ${process.env.ORGANIZATION_NAME} Discord from the users directory.`
 	}
+	console.info("Creating Discord invite")
 	// Create a discord invite with specified options
 	channel.createInvite(options)
 	.then(invite => {
 		// Send the invite to the user via email
-	  	console.log(`Created an invite with a code of ${invite}`);
+	  	console.info(`Created an invite with a code of ${invite}`);
 	  	mailer.sendInvite(invite, email);
 	})
 	.catch(console.error);
