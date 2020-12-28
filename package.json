@@ -10,8 +10,11 @@
   "author": "Federico Galbiati",
   "license": "ISC",
   "dependencies": {
+    "activedirectory": "^0.7.2",
     "discord.js": "^12.5.1",
-    "dotenv": "^8.2.0",
-    "handlebars": "^4.7.6"
+    "dotenv-defaults": "^2.0.1",
+    "handlebars": "^4.7.6",
+    "ldapjs": "^2.2.3",
+    "ldapjs-client": "^0.1.1"
   }
 }
