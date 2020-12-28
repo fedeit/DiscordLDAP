@@ -1,5 +1,7 @@
 const mailer = require('./mailer.js')
 const Discord = require('discord.js');
+const ldap = require('./ldap-client.js')
+
 // Vars to be defined later
 var guild;
 var client;
@@ -18,6 +20,8 @@ exports.initialize = (callback) => {
 		console.info(`Connected to Discord! Logged in as ${client.user.tag}!`);
 		// Get the guild
 		guild = client.guilds.cache.get(process.env.DISCORD_GUILD);
+		// Listen for registration messages
+		listenUIDRegistration();
 		callback(true)
 	}).on('error', (error) => {
 		console.error(error)
@@ -32,7 +36,11 @@ exports.getMembers = (callback) => {
 		// Filter out bots and return an array of objects with name only
 		let users = members
 		.filter( member => !member.user.bot )
-		.map( member => member.user );
+		.map( (member) => {
+			let usr = member.user
+			usr.joinedTimestamp = member.joinedTimestamp
+			return usr
+		});
 		// Callback with users
 		if (process.env.FULL_LOGGING == 'true') { console.info(users) }
 		callback(users);
@@ -48,6 +56,20 @@ exports.kickMember = (memberId) => {
 		member.kick(`You were not found in the ${process.env.ORGANIZATION_NAME} users directory. This is an automatic removal.`);
 	})
 	.catch(console.error);
+}
+
+let listenUIDRegistration = () => {
+	client.on("message", async (message) => {
+		if (message.content != "" && message.author.id != process.env.DISCORD_CLIENT_ID) {
+			console.log("Registering " + message.author.id + " with uid " + message.content)
+			let error = await ldap.setDiscordIdFor(message.content, message.author.id)
+			if (error === undefined) {
+				message.author.send("Thank you! You are now registered with your organization!");
+			} else {
+				message.author.send("Oops! We couldn't verify your identity! Error: " + error)
+			}
+		}
+	});
 }
 
 exports.inviteMember = (email) => {

@@ -21,31 +21,77 @@ exports.connect = async (callback) => {
 	}
 }
 
-exports.getUsers = async (asSet = false) => {
+let isDiscordIdInUse = async (discordId) => {
+	const options = {
+		filter: '(registeredAddress=' + discordId + ')',
+		scope: 'sub',
+		attributes: ['dn']
+	};
+
+	// Check if discord id is already in use
+	let usersWDiscordId = await searchLDAP(process.env.LDAP_GROUP, options)
+	return usersWDiscordId.length > 0;
+}
+
+exports.setDiscordIdFor = async (uid, discordId) => {
+	try {
+		// Check if discord id is already used
+		if (await isDiscordIdInUse(discordId)) {
+			console.warn("User " + discordId + " already registered with another userid! (trying " + uid +")")
+			return "You already registered with another userid!"
+		}
+		// Get user from LDAP 
+		let user = await getUserInfo(uid)
+		if (user.length > 0) {
+			user = user[0]
+			console.info("Found user " + uid + " in LDAP")
+			var change = {}
+			if (user.registeredAddress === undefined) {
+				console.info("User not registered yet")
+				change = {
+					operation: 'add',
+					modification: {
+					  registeredAddress: discordId
+					}
+				};
+			} else {
+				console.info("User " + discordId + " tried to signup with uid already in use " + uid)
+				return "User " + uid + " is already registered!"
+			}
+			console.info("Adding discord id to LDAP user " + uid)
+			await client.modify(user.dn, change);
+			return undefined;
+		}
+		console.info("Could not find a user with ID " + uid)
+		return "Could not find a user with ID " + uid;
+	} catch (e) {
+		console.error(e)
+		return e.name;
+	}		
+}
+
+exports.getUsers = async () => {
 	// Get users based on specified filter
 	const options = {
 		filter: '(objectClass=*)',
 		scope: 'sub',
-		attributes: ['member', 'mail']
+		attributes: ['registeredAddress', 'mail', 'uid']
 	};
 	// Get users from LDAP
 	let users = await searchLDAP(process.env.LDAP_GROUP, options)
-	if (asSet) {
-		let emails = new Set(users.map( usr => usr.mail ))
-		return emails
-	}
 	return users
 }
 
-exports.getUserInfo = async (user_dn) => {
-	if (!user_dn) { console.error('LDAP ERROR: Couldn not parse user dn: ' + user_dn); return; }
-	// Get user - only email and dn
+exports.getUserInfo = async (uid) => {
+	// Get user based on their uid
 	const options = {
-		filter: '(objectClass=*)',
+		filter: '(uid=' + uid + ')',
 		scope: 'sub',
-		attributes: ['mail', 'dn']
+		attributes: ['dn', 'registeredAddress']
 	};
-	return await searchLDAP(user_dn, options);
+	// Get users from LDAP
+	let user = await searchLDAP(process.env.LDAP_GROUP, options)
+	return user;
 }
 
 let searchLDAP = async (dn, options) => {

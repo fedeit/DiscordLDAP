@@ -15,6 +15,7 @@
     "dotenv-defaults": "^2.0.1",
     "handlebars": "^4.7.6",
     "ldapjs": "^2.2.3",
-    "ldapjs-client": "^0.1.1"
+    "ldapjs-client": "^0.1.1",
+    "sqlite3": "^5.0.0"
   }
 }
