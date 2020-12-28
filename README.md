@@ -1,6 +1,7 @@
 # DiscordLDAP
 <img src="https://img.icons8.com/fluent/48/000000/discord-logo.png"/><img src="https://img.icons8.com/android/40/000000/plus.png"/><img src="https://img.icons8.com/ultraviolet/48/000000/active-directory.png"/>
 
+<b>WARNING: THIS IS AN ALPHA!</b><br>
 DiscordLDAP is a simple opensource platform that syncronizes a LDAP with a Discord Guild (Server). It is currently in beta and under initial testing, but has had no major issues until now!
 
 ## Description
