@@ -1,6 +1,7 @@
 const mailer = require('./mailer.js')
 const Discord = require('discord.js');
 const ldap = require('./ldap_client.js')
+const db = require('./registration_sqlite3.js')
 
 // Vars to be defined later
 var guild;
@@ -65,6 +66,7 @@ let listenUIDRegistration = () => {
 			let error = await ldap.setDiscordIdFor(message.content, message.author.id)
 			if (error === undefined) {
 				message.author.send("Thank you! You are now registered with your organization!");
+				db.deleteInvite(message.content)
 			} else {
 				message.author.send("Oops! We couldn't verify your identity! Error: " + error)
 			}
@@ -72,7 +74,7 @@ let listenUIDRegistration = () => {
 	});
 }
 
-exports.inviteMember = (email) => {
+exports.inviteMember = (email, callback) => {
 	console.info(`Inviting member ${email} to Discord`)
 	// Get the base channel where to add people
 	const channel = guild.channels.resolve(process.env.DISCORD_CHANNEL);
@@ -91,6 +93,7 @@ exports.inviteMember = (email) => {
 		// Send the invite to the user via email
 	  	console.info(`Created an invite with a code of ${invite}`);
 	  	mailer.sendInvite(invite, email);
+	  	callback(invite);
 	})
 	.catch(console.error);
 }

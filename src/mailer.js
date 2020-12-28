@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 const handlebars = require('handlebars');
-
+const fs = require('fs');
 // Create reusable transporter object using the default SMTP transport
 let transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -19,13 +19,14 @@ exports.sendInvite = async (inviteLink, userEmail) => {
   };
   let htmlTemplate = loadTemplate(replacements);
   // send mail with defined transport object
-  let info = await transporter.sendMail({
+  let config = {
     from: process.env.SMTP_FROM, // sender address
     to: userEmail, // list of receivers
     subject: `Discord Invite from ${process.env.ORGANIZATION_NAME}`, // Subject line
-    text: inviteLink, // plain text body
-    html: inviteLink, // html body
-  });
+    text: inviteLink.link, // plain text body
+    html: inviteLink.link, // html body
+  }
+//  let info = await transporter.sendMail(config);
 }
 
 let readHTMLFile = function(path) {
@@ -33,7 +34,7 @@ let readHTMLFile = function(path) {
   try {
     return fs.readFileSync(path, {encoding: 'utf-8'});
   } catch (error) {
-    console.log(error);
+    return undefined
   }
 };
 
@@ -41,6 +42,9 @@ let loadTemplate = (replacements) => {
   // Get the html template
   let templatePath = __dirname + 'templates/invite.html';
   let html = readHTMLFile(templatePath);
+  if (html === undefined) {
+    return JSON.stringify(replacements)
+  }
   // Apply replacements
   var template = handlebars.compile(html);
   return template(replacements);

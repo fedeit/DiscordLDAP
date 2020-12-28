@@ -47,19 +47,19 @@ let startSync = () => {
 	discord.getMembers(async (discordUsers) => {
 		let ldapResponse = await ldap.getUsers(true);
 		let toInvite = exports.findToAddDiscordUsers(ldapResponse);
-//		toInvite = filterSet(toInvite, invited)
+
 		let toRemove = exports.findToRemoveDiscordUsers(discordUsers, ldapResponse);
 		toRemove = filterSet(toRemove, whitelistedUsers)
-		console.log(toInvite)
+		sendInvites(toInvite)
 		console.log(toRemove)
 	});
 }
 
 exports.findToAddDiscordUsers = (ldapUsers) => {
-	let toAdd = new Set()
+	let toAdd = []
 	for (const ldapUser of ldapUsers) {
 		if (!ldapUser.hasOwnProperty('registeredAddress')) {
-			toAdd.add(ldapUser.dn)
+			toAdd.push({ uid: ldapUser.uid, email: ldapUser.email })
 		}
 	}
 	return toAdd
@@ -74,6 +74,16 @@ exports.findToRemoveDiscordUsers = (discordUsers, ldapUsers) => {
 		}
 	})
 	return toRemove
+}
+
+let sendInvites = (people) => {
+	for (person in people) {
+		// Email the person's email
+		discord.inviteMember(people.email, (token) => {
+			// Add to db
+			db.registerInvite(person.uid, token)
+		})
+	}
 }
 
 let timeDifference = (timestamp) => {
