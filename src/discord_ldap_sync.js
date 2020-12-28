@@ -1,6 +1,6 @@
 const fs = require('fs');
 const discord = require('./discord_integration.js')
-const ldap = require('./ldap-client.js')
+const ldap = require('./ldap_client.js')
 const db = require('./registration_sqlite3.js')
 
 let loadWhitelistCSV = (callback) => {

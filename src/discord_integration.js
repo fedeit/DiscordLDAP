@@ -1,6 +1,6 @@
 const mailer = require('./mailer.js')
 const Discord = require('discord.js');
-const ldap = require('./ldap-client.js')
+const ldap = require('./ldap_client.js')
 
 // Vars to be defined later
 var guild;
