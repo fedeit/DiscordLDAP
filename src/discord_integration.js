@@ -13,21 +13,32 @@ exports.initialize = (callback) => {
 	intents.add('GUILD_MEMBERS');
 	// Add intent to client
 	client = new Discord.Client({ ws: {intents: intents}});
-	// Login using token
-	client.login(process.env.DISCORD_BOT_TOKEN);
 	// When logged in, retrieve the guild
 	client.on('ready', () => {
 		console.info(`Connected to Discord! Logged in as ${client.user.tag}!`);
 		// Get the guild
-		guild = client.guilds.cache.get(process.env.DISCORD_GUILD);
-		// Listen for registration messages
-		listenUIDRegistration();
-	    client.user.setStatus('available')
-		callback(true)
+		client.guilds.fetch(process.env.DISCORD_GUILD)
+		.then(g => {
+			guild = g
+			if (guild == undefined) {
+				console.error("DISCORD ERROR: Cannot get Guild", process.env.DISCORD_GUILD)
+				return callback(false)
+			}
+			// Listen for registration messages
+			listenUIDRegistration();
+		    client.user.setStatus('available')
+			callback(true)
+		})
+		.catch(e => {
+			console.error(e)
+			callback(false)
+		});
 	}).on('error', (error) => {
 		console.error(error)
 		callback(false)
 	});
+	// Login using token
+	client.login(process.env.DISCORD_BOT_TOKEN);
 }
 
 exports.sendMessage = (discordId, message) => {
