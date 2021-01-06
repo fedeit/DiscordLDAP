@@ -26,7 +26,7 @@ exports.connect = async (callback) => {
 	}
 }
 
-let isDiscordIdInUse = async (discordId) => {
+exports.isDiscordIdInUse = async (discordId) => {
 	const options = {
 		filter: '(registeredAddress=' + discordId + ')',
 		scope: 'sub',
@@ -44,7 +44,7 @@ let isDiscordIdInUse = async (discordId) => {
 exports.setDiscordIdFor = async (uid, password, discordId) => {
 	try {
 		// Check if discord id is already used
-		if (await isDiscordIdInUse(discordId)) {
+		if (await exports.isDiscordIdInUse(discordId)) {
 			console.warn("User " + discordId + " already registered with another discord user! (trying " + uid +")")
 			return "You already registered with another userid!"
 		}
@@ -82,6 +82,7 @@ exports.setDiscordIdFor = async (uid, password, discordId) => {
 }
 
 exports.getUsers = async () => {
+	console.log("Getting users from LDAP")
 	// Get users based on specified filter
 	const options = {
 		filter: process.env.LDAP_GROUP_QUERY,

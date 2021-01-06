@@ -1,4 +1,3 @@
-const mailer = require('./mailer.js')
 const Discord = require('discord.js');
 const ldap = require('./ldap_client.js')
 const db = require('./registration_sqlite3.js')
@@ -23,6 +22,7 @@ exports.initialize = (callback) => {
 		guild = client.guilds.cache.get(process.env.DISCORD_GUILD);
 		// Listen for registration messages
 		listenUIDRegistration();
+	    client.user.setStatus('available')
 		callback(true)
 	}).on('error', (error) => {
 		console.error(error)
@@ -68,18 +68,32 @@ exports.kickMember = (memberId) => {
 }
 
 let listenUIDRegistration = () => {
+	client.on('guildMemberAdd', async (member) => {
+		await sendVerificationLink(member);
+	});
 	client.on("message", async (message) => {
 		if (message.content.toLowerCase() == "verify" && message.author.id != process.env.DISCORD_CLIENT_ID) {
-			console.log("Sending verification link for user ", message.author.id)
-			db.generateVerificationCode(message.author.id, (code, error) => {
-				if (error) {
-					message.author.send(error)
-				} else {
-					message.author.send("Here's a verification link! Make sure you don't share it with others as it is unique and one-time for you: " + process.env.API_HOSTNAME + code)
-				}
-			})
+			await sendVerificationLink(message.author);
 		}
 	});
+	console.info("Setup for onMessage and onGuildMemberAdd completed")
+}
+
+let sendVerificationLink = async (member) => {
+	// Check user is already registered
+	if (await ldap.isDiscordIdInUse(member)) {
+		member.send("Your Discord id is already registered.")
+		return
+	}
+	// Generate verification code
+	console.log("Sending verification link for user ", member.id)
+	db.generateVerificationCode(member.id, (code, error) => {
+		if (error) {
+			member.send(error)
+		} else {
+			member.send("Here's a verification link! Make sure you don't share it with others as it is unique and one-time for you: " + process.env.API_HOSTNAME + code)
+		}
+	})
 }
 
 exports.inviteMember = (email, callback) => {
@@ -100,7 +114,6 @@ exports.inviteMember = (email, callback) => {
 	.then(invite => {
 		// Send the invite to the user via email
 	  	console.info(`Created an invite with a code of ${invite}`);
-	  	mailer.sendInvite(invite, email);
 	  	callback(invite);
 	})
 	.catch(console.error);

@@ -3,6 +3,9 @@ const discord = require('./discord_integration.js')
 const ldap = require('./ldap_client.js')
 const db = require('./registration_sqlite3.js')
 const SystemStatus = require('./system_status.js')
+const mailer = require('./mailer.js')
+exports.isSetup = () => { return SystemStatus.isSetup() }
+exports.statusFormatted = () => { return SystemStatus.statusFormatted() }
 
 let loadWhitelistCSV = () => {
 	let file = ""
@@ -11,8 +14,9 @@ let loadWhitelistCSV = () => {
 		file += data
 	})
 	.on('end', () => {
-		let whitelist = new Set(file.split(','))
+		whitelistedUsers = new Set(file.split(','))
 		SystemStatus.status.whitelistDBUp = true
+		console.log("Whitelist parsed")
 	})
 	.on('error', (e) => {
 		SystemStatus.status.whitelistDBUp = false
@@ -23,6 +27,9 @@ let loadWhitelistCSV = () => {
 let whitelistedUsers = new Set();
 loadWhitelistCSV()
 
+mailer.verify((connected) => {
+	SystemStatus.status.mailerUp = connected
+})
 discord.initialize((connected) => {
 	SystemStatus.status.discordUp = connected
 	startSync()
@@ -46,6 +53,7 @@ let startSync = () => {
 		let toRemove = exports.findToRemoveDiscordUsers(discordUsers, ldapResponse);
 		toRemove = filterSet(toRemove, whitelistedUsers)
 		kickUsers(toRemove)
+		console.log("Completed sync process")
 	});
 }
 
@@ -70,7 +78,7 @@ exports.findToAddDiscordUsers = (ldapUsers) => {
 	let toAdd = []
 	for (const ldapUser of ldapUsers) {
 		if (!ldapUser.hasOwnProperty('registeredAddress')) {
-			toAdd.push({ uid: ldapUser.uid, email: ldapUser.email })
+			toAdd.push({ uid: ldapUser.uid, email: ldapUser.mail })
 		}
 	}
 	return toAdd
@@ -88,15 +96,20 @@ exports.findToRemoveDiscordUsers = (discordUsers, ldapUsers) => {
 }
 
 let sendInvites = (people) => {
+	if (process.env.DEVELOPMENT == true) { return; }
 	for (const person of people) {
-		if (person.email === undefined || person.uid === undefined) { continue; }
+		if (person.email == undefined || person.uid == undefined) { continue; }
 		db.isInviteSent(person.uid, (isSent) => {
 			if (!isSent) {
+				console.log("Sending info to ", person.email)
 				// Email the person's email
 				discord.inviteMember(person.email, (token) => {
 					// Add to db
 					db.registerInvite(person.uid, token)
+				  	mailer.sendInvite(token, person.email);
 				})
+			} else {
+				console.log("Invite already sent to", person.email)
 			}
 		})
 	}
@@ -104,7 +117,6 @@ let sendInvites = (people) => {
 
 let kickUsers = (people) => {
 	people.forEach((person) => {
-		console.log(typeof person)
 		// Email the person's email
 		discord.kickMember(person)
 	})
@@ -128,7 +140,6 @@ exports.verify = (code, username, password, callback) => {
 		if (error) {
 			callback({message: error, verified: false})
 		}
-		console.log(discordID)
 		console.log("Registering " + discordID + " with uid " + username + " using verification code " + code)
 		let discordError = await ldap.setDiscordIdFor(username, password, discordID)
 		if (discordError === undefined) {

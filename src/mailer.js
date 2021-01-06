@@ -13,6 +13,18 @@ let transporter = nodemailer.createTransport({
   },
 });
 
+exports.verify = (callback) => {
+  // verify connection configuration
+  transporter.verify(function(error, success) {
+    if (error) {
+      console.log(error);
+      callback(false)
+    } else {
+      console.log("Mailer is ready");
+      callback(true)
+    }
+  });
+}
 
 exports.sendInvite = async (inviteLink, userEmail) => {
   var replacements = {
@@ -24,13 +36,19 @@ exports.sendInvite = async (inviteLink, userEmail) => {
     from: process.env.SMTP_FROM, // sender address
     to: userEmail, // list of receivers
     subject: `Discord Invite from ${process.env.ORGANIZATION_NAME}`, // Subject line
-    text: inviteLink.link, // plain text body
-    html: inviteLink.link, // html body
+    text: htmlTemplate, // plain text body
+    html: htmlTemplate, // html body
   }
-//  let info = await transporter.sendMail(config);
+  transporter.sendMail(config, (err, info) => {
+    if (error) {
+        console.error("MAIL ERROR is ", error);
+    } else {
+        console.log('Email sent: ', info);
+    }
+  });
 }
 
-let readHTMLFile = function(path) {
+let readHTMLFile = (path) => {
   // Try loading the content of the html template
   try {
     return fs.readFileSync(path, {encoding: 'utf-8'});
@@ -41,7 +59,7 @@ let readHTMLFile = function(path) {
 
 let loadTemplate = (replacements) => {
   // Get the html template
-  let templatePath = __dirname + 'templates/invite.html';
+  let templatePath = __dirname + '/../templates/invite.html';
   let html = readHTMLFile(templatePath);
   if (html === undefined) {
     return JSON.stringify(replacements)

@@ -24,21 +24,16 @@ app.post('/verify', (req, res) => {
 })
 
 app.get('/api/discordInit', (req, res) => {
-	if(!discordLDAP.status.discordUp) {
-		discordLDAP.initialize(() => {
-			res.redirect('/status');
-		})
-	} else {
-		res.redirect('/status');
-	}
+	res.redirect('/status');
 })
 
 app.get('/api/status', (req, res) => {
-	res.send({systemStatus: discordLDAP.isSetup(), status: discordLDAP.statusFormatted()});
+	res.send({ systemStatus: discordLDAP.isSetup(), status: discordLDAP.statusFormatted() });
 })
 
 app.get('/api/members', jwtAuth, async (req, res) => {
 	let users = await discordLDAP.getMembers()
+	users = users.filter(member => member.registeredAddress !== undefined)
 	res.send(users)
 })
 
