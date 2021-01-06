@@ -33,17 +33,20 @@ let isDiscordIdInUse = async (discordId) => {
 	return usersWDiscordId.length > 0;
 }
 
-exports.setDiscordIdFor = async (uid, discordId) => {
+exports.setDiscordIdFor = async (uid, password, discordId) => {
 	try {
 		// Check if discord id is already used
 		if (await isDiscordIdInUse(discordId)) {
 			console.warn("User " + discordId + " already registered with another discord user! (trying " + uid +")")
 			return "You already registered with another userid!"
 		}
+		var user = await exports.getUserInfo(uid);
 		// Get user from LDAP 
-		let user = await exports.getUserInfo(uid)
 		if (user.length > 0) {
 			user = user[0]
+			var tempClient = new LdapClient({ url: process.env.LDAP_URL });
+			// Test Username and Password
+			await tempClient.bind(user.dn, password);
 			console.info("Found user " + uid + " in LDAP")
 			var change = {}
 			if (user.registeredAddress === undefined) {
@@ -55,11 +58,11 @@ exports.setDiscordIdFor = async (uid, discordId) => {
 					}
 				};
 			} else {
-				console.info("User " + discordId + " tried to signup with uid already in use " + uid)
+				console.info("User " + discordId + " tried to signup with already verified user " + uid)
 				return "User " + uid + " is already registered!"
 			}
 			console.info("Adding discord id to LDAP user " + uid)
-			await client.modify(user.dn, change);
+			await tempClient.modify(user.dn, change);
 			return undefined;
 		}
 		console.info("Could not find a user with ID " + uid)

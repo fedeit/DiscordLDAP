@@ -132,7 +132,7 @@ exports.verify = (code, username, password, callback) => {
 		}
 		console.log(discordID)
 		console.log("Registering " + discordID + " with uid " + username + " using verification code " + code)
-		let discordError = await ldap.setDiscordIdFor(username, discordID)
+		let discordError = await ldap.setDiscordIdFor(username, password, discordID)
 		if (discordError === undefined) {
 			let message = "Thank you! You are now registered with your organization!" || process.env.CONFIRMATION_MESSAGE
 			discord.sendMessage(discordID, message)
