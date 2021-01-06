@@ -5,7 +5,7 @@ const app = express()
 const defaultPort = 80
 const discordLDAP = require('./src/discord_ldap_sync.js')
 app.use(express.json())
-app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.static(path.join(__dirname, '/web-ui/build')));
 
 app.post('/verify', (req, res) => {
 	if (!discordLDAP.isSetup()) {
