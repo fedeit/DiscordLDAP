@@ -30,7 +30,14 @@ exports.initialize = (callback) => {
 	});
 }
 
+exports.sendMessage = (discordId, message) => {
+	guild.members.fetch(discordId).then((user) => {
+		user.send(message);
+	});
+}
+
 exports.getMembers = (callback) => {
+	console.log("Getting Discord Members")
 	// Get list of members without caching and forcing not to retrieve from cache
 	guild.members.fetch({ cache: false, force: true })
 	.then((members) => {
@@ -50,6 +57,7 @@ exports.getMembers = (callback) => {
 }
 
 exports.kickMember = (memberId) => {
+	console.log("Kicking member " + memberId)
 	// Get the member based on their Id
 	let member = guild.members.fetch(memberId)
 	.then((member) => {
@@ -61,15 +69,15 @@ exports.kickMember = (memberId) => {
 
 let listenUIDRegistration = () => {
 	client.on("message", async (message) => {
-		if (message.content != "" && message.author.id != process.env.DISCORD_CLIENT_ID) {
-			console.log("Registering " + message.author.id + " with uid " + message.content)
-			let error = await ldap.setDiscordIdFor(message.content, message.author.id)
-			if (error === undefined) {
-				message.author.send("Thank you! You are now registered with your organization!");
-				db.deleteInvite(message.content)
-			} else {
-				message.author.send("Oops! We couldn't verify your identity! Error: " + error)
-			}
+		if (message.content.toLowerCase() == "verify" && message.author.id != process.env.DISCORD_CLIENT_ID) {
+			console.log("Sending verification link for user ", message.author.id)
+			db.generateVerificationCode(message.author.id, (code, error) => {
+				if (error) {
+					message.author.send(error)
+				} else {
+					message.author.send("Here's a verification link! Make sure you don't share it with others as it is unique and one-time for you: " + process.env.API_HOSTNAME + code)
+				}
+			})
 		}
 	});
 }

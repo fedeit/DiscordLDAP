@@ -37,11 +37,11 @@ exports.setDiscordIdFor = async (uid, discordId) => {
 	try {
 		// Check if discord id is already used
 		if (await isDiscordIdInUse(discordId)) {
-			console.warn("User " + discordId + " already registered with another userid! (trying " + uid +")")
+			console.warn("User " + discordId + " already registered with another discord user! (trying " + uid +")")
 			return "You already registered with another userid!"
 		}
 		// Get user from LDAP 
-		let user = await getUserInfo(uid)
+		let user = await exports.getUserInfo(uid)
 		if (user.length > 0) {
 			user = user[0]
 			console.info("Found user " + uid + " in LDAP")

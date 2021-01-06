@@ -13,9 +13,11 @@
     "activedirectory": "^0.7.2",
     "discord.js": "^12.5.1",
     "dotenv-defaults": "^2.0.1",
+    "express": "^4.17.1",
     "handlebars": "^4.7.6",
     "ldapjs": "^2.2.3",
     "ldapjs-client": "^0.1.1",
+    "md5": "^2.3.0",
     "sqlite3": "^5.0.0"
   }
 }
