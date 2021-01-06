@@ -2,22 +2,22 @@ const md5 = require('md5');
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(__dirname + '/sqldb.db');
 
-
 exports.setup = (callback) => {
 	db.serialize(() => {
 		db.run("CREATE TABLE IF NOT EXISTS invites(uid text, invite text);", (err) => {
 			if (err) {
-				callback(false);
 			}
 			console.log("invites database initialized")
-			db.run("CREATE TABLE IF NOT EXISTS verificationCodes(discordID text, verificationCode text);", (err2) => {
-				if (err2) {
-					callback(false);
-				}
-				console.log("verificationCodes database initialized")
-				callback(true)
-			});
-
+		});
+		db.run("CREATE TABLE IF NOT EXISTS verificationCodes(discordID text, verificationCode text);", (err2) => {
+			if (err2) {
+			}
+			console.log("verificationCodes database initialized")
+		});
+		db.run("CREATE TABLE IF NOT EXISTS verificationCodes(discordID text, verificationCode text);", (err2) => {
+			if (err2) {
+			}
+			console.log("verificationCodes database initialized")
 		});
 	});
 
@@ -78,4 +78,16 @@ exports.getDiscordID = (verificationCode, callback) => {
 			callback(rows[0].discordID, undefined);
 		}
 	});
+}
+
+exports.addToWhitelist = () => {
+
+}
+
+exports.removeFromWhitelist = () => {
+	
+}
+
+exports.getWhitelist = () => {
+	
 }

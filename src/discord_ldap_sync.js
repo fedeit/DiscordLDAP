@@ -2,37 +2,9 @@ const fs = require('fs');
 const discord = require('./discord_integration.js')
 const ldap = require('./ldap_client.js')
 const db = require('./registration_sqlite3.js')
+const SystemStatus = require('./system_status.js')
 
-let status = {
-	discordUp: false,
-	ldapUp: false,
-	whitelistParsed: false,
-	databaseUp: false
-}
-exports.status = status
-
-let isSetup = () => {
-	return status.discordUp && status.ldapUp && status.whitelistParsed && status.databaseUp
-}
-exports.isSetup = isSetup
-let setWhitelistParsed = (s) => {
-	status.whitelistParsed = s
-	startSync()
-}
-let setLDAP = (s) => {
-	status.ldapUp = s
-	startSync()
-}
-let setDiscord = (s) => {
-	status.discordUp = s
-	startSync()
-}
-let setDatabase = (s) => {
-	status.databaseUp = s
-	startSync()
-}
-
-let loadWhitelistCSV = (callback) => {
+let loadWhitelistCSV = () => {
 	let file = ""
 	fs.createReadStream(__dirname + '/../whitelist.csv')
 	.on('data', (data) => {
@@ -40,24 +12,33 @@ let loadWhitelistCSV = (callback) => {
 	})
 	.on('end', () => {
 		let whitelist = new Set(file.split(','))
-		callback(whitelist)
-		setWhitelistParsed(true)
+		SystemStatus.status.whitelistDBUp = true
 	})
 	.on('error', (e) => {
+		SystemStatus.status.whitelistDBUp = false
 		console.error(e)
-		setWhitelistParsed(false)
 	})
 }
 
 let whitelistedUsers = new Set();
-loadWhitelistCSV((users) => { whitelistedUsers = users })
+loadWhitelistCSV()
 
-discord.initialize((connected) => setDiscord(connected))
-ldap.connect((connected) => setLDAP(connected))
-db.setup((done) => setDatabase(done))
+discord.initialize((connected) => {
+	SystemStatus.status.discordUp = connected
+	startSync()
+})
+ldap.connect((connected) => {
+	SystemStatus.status.ldapUp = connected
+	startSync()
+})
+db.setup((connected) => {
+	SystemStatus.status.verificationDBUp = connected
+	SystemStatus.status.invitesDBUp = connected
+	startSync()
+})
 
 let startSync = () => {
-	if (!(isSetup())) { return }
+	if (!(SystemStatus.isSetup())) { return }
 	discord.getMembers(async (discordUsers) => {
 		let ldapResponse = await ldap.getUsers(true);
 		let toInvite = exports.findToAddDiscordUsers(ldapResponse);
@@ -65,6 +46,23 @@ let startSync = () => {
 		let toRemove = exports.findToRemoveDiscordUsers(discordUsers, ldapResponse);
 		toRemove = filterSet(toRemove, whitelistedUsers)
 		kickUsers(toRemove)
+	});
+}
+
+exports.toInvite = (callback) => {
+	discord.getMembers(async (discordUsers) => {
+		let ldapResponse = await ldap.getUsers(true);
+		let toInvite = exports.findToAddDiscordUsers(ldapResponse);
+		callback(toInvite)
+	});
+}
+
+exports.toKick = (callback) => {
+	discord.getMembers(async (discordUsers) => {
+		let ldapResponse = await ldap.getUsers(true);
+		let toRemove = exports.findToRemoveDiscordUsers(discordUsers, ldapResponse);
+		toRemove = filterSet(toRemove, whitelistedUsers)
+		callback(toRemove)
 	});
 }
 
@@ -145,4 +143,9 @@ exports.verify = (code, username, password, callback) => {
 		}
 
 	});
+}
+
+exports.getMembers = async () => {
+	let users = await ldap.getUsers()
+	return users
 }

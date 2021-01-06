@@ -12,9 +12,14 @@ exports.connect = async (callback) => {
 		console.info('Connected to LDAP successfully!')
 		// Test retrieving users from LDAP group
 		console.info('Test retrieve all users from LDAP')
-		await exports.getUsers()
-		console.info('Test users received correctly!')
-		callback(true)
+		let res = await exports.getUsers()
+		if (res) {
+			console.info('Test users received correctly!')
+			callback(true)
+		} else {
+			console.error('LDAP ERROR: Test users not received')
+			callback(false)
+		}
 	} catch (e) {
 		console.error('LDAP ERROR: Bind failed' + e)
 		callback(false)
@@ -29,7 +34,10 @@ let isDiscordIdInUse = async (discordId) => {
 	};
 
 	// Check if discord id is already in use
-	let usersWDiscordId = await searchLDAP(process.env.LDAP_GROUP, options)
+	let usersWDiscordId = await searchLDAP(process.env.LDAP_OU, options)
+	if (usersWDiscordId == undefined) {
+		return true;
+	}
 	return usersWDiscordId.length > 0;
 }
 
@@ -76,12 +84,12 @@ exports.setDiscordIdFor = async (uid, password, discordId) => {
 exports.getUsers = async () => {
 	// Get users based on specified filter
 	const options = {
-		filter: '(objectClass=*)',
+		filter: process.env.LDAP_GROUP_QUERY,
 		scope: 'sub',
 		attributes: ['registeredAddress', 'mail', 'uid']
 	};
 	// Get users from LDAP
-	let users = await searchLDAP(process.env.LDAP_GROUP, options)
+	let users = await searchLDAP(process.env.LDAP_OU, options)
 	return users
 }
 
@@ -93,7 +101,7 @@ exports.getUserInfo = async (uid) => {
 		attributes: ['dn', 'registeredAddress', 'uid']
 	};
 	// Get users from LDAP
-	let user = await searchLDAP(process.env.LDAP_GROUP, options)
+	let user = await searchLDAP(process.env.LDAP_OU, options)
 	return user;
 }
 
@@ -104,6 +112,7 @@ let searchLDAP = async (dn, options) => {
 		if (process.env.FULL_LOGGING == 'true') { console.info(entries) }
 		return entries
 	} catch (e) {
-	  console.error(e);
+		console.error(e);
+		return undefined
 	}
 }

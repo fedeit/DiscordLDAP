@@ -1,6 +1,7 @@
 const nodemailer = require("nodemailer");
 const handlebars = require('handlebars');
 const fs = require('fs');
+
 // Create reusable transporter object using the default SMTP transport
 let transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
