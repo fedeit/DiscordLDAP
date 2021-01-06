@@ -23,13 +23,30 @@ app.post('/verify', (req, res) => {
 app.get('/api/discordInit', (req, res) => {
 	if(!discordLDAP.status.discordUp) {
 		discordLDAP.initialize(() => {
-			res.redirect('/api/status');
+			res.redirect('/status');
 		})
+	} else {
+		res.redirect('/status');
 	}
 })
 
+app.get('/api/status', (req, res) => {
+	let propServices = {
+		discordUp: "Discord",
+		databaseUp: "Database",
+		ldapUp: "LDAP",
+		whitelistParsed: "Whitelist",
+		mailerUp: "Mailer"
+	}
+	let status = [];
+	for (const service in discordLDAP.status) {
+		status.push({ name: propServices[service], isUp: discordLDAP.status[service] })
+	}
+	res.send({systemStatus: discordLDAP.isSetup(), status: status});
+})
+
 app.get('*', function(req, res) {
-  res.sendFile('index.html', {root: path.join(__dirname, 'build')});
+  res.sendFile('index.html', {root: path.join(__dirname, 'web-ui/build')});
 });
 
 let listener = app.listen(process.env.port || defaultPort, () => {

@@ -7,7 +7,7 @@ let status = {
 	discordUp: false,
 	ldapUp: false,
 	whitelistParsed: false,
-	databaseUp: true
+	databaseUp: false
 }
 exports.status = status
 
@@ -28,7 +28,7 @@ let setDiscord = (s) => {
 	startSync()
 }
 let setDatabase = (s) => {
-	status.setDatabase = s
+	status.databaseUp = s
 	startSync()
 }
 
