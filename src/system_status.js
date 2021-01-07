@@ -11,8 +11,8 @@ exports.status = {
 	discordUp: false,
 	ldapUp: false,
 	whitelistDBUp: false,
-	verificationDBUp: true,
-	invitesDBUp: true,
+	verificationDBUp: false,
+	invitesDBUp: false,
 	mailerUp: false
 }
 

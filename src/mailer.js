@@ -2,6 +2,8 @@ const nodemailer = require("nodemailer");
 const handlebars = require('handlebars');
 const fs = require('fs');
 
+let templatePath = __dirname + '/../templates/invite.html';
+
 // Create reusable transporter object using the default SMTP transport
 let transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -59,7 +61,6 @@ let readHTMLFile = (path) => {
 
 let loadTemplate = (replacements) => {
   // Get the html template
-  let templatePath = __dirname + '/../templates/invite.html';
   let html = readHTMLFile(templatePath);
   if (html === undefined) {
     return JSON.stringify(replacements)

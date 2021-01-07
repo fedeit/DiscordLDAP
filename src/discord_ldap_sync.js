@@ -7,25 +7,7 @@ const mailer = require('./mailer.js')
 exports.isSetup = () => { return SystemStatus.isSetup() }
 exports.statusFormatted = () => { return SystemStatus.statusFormatted() }
 
-let loadWhitelistCSV = () => {
-	let file = ""
-	fs.createReadStream(__dirname + '/../whitelist.csv')
-	.on('data', (data) => {
-		file += data
-	})
-	.on('end', () => {
-		whitelistedUsers = new Set(file.split(','))
-		SystemStatus.status.whitelistDBUp = true
-		console.log("Whitelist parsed")
-	})
-	.on('error', (e) => {
-		SystemStatus.status.whitelistDBUp = false
-		console.error(e)
-	})
-}
-
 let whitelistedUsers = new Set();
-loadWhitelistCSV()
 
 mailer.verify((connected) => {
 	SystemStatus.status.mailerUp = connected
@@ -38,10 +20,24 @@ ldap.connect((connected) => {
 	SystemStatus.status.ldapUp = connected
 	startSync()
 })
-db.setup((connected) => {
-	SystemStatus.status.verificationDBUp = connected
-	SystemStatus.status.invitesDBUp = connected
-	startSync()
+db.setup((invitesConnected) => {
+	SystemStatus.status.invitesDBUp = invitesConnected
+	startSync()	
+}, (verificationCodesConnected) => {
+	SystemStatus.status.verificationDBUp = verificationCodesConnected
+	startSync()	
+}, (whitelistConnected) => {
+	db.getWhitelist((users, err) => {
+		if (err) {
+			SystemStatus.status.whitelistDBUp = false
+			return;
+		} else {
+			SystemStatus.status.whitelistDBUp = true
+			whitelistedUsers = users
+			console.log("Whitelist parsed, found users:", whitelistedUsers.size)
+			startSync()	
+		}
+	})
 })
 
 let startSync = () => {

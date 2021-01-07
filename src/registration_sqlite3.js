@@ -1,22 +1,28 @@
 const md5 = require('md5');
 var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database(__dirname + '/sqldb.db');
+var db = new sqlite3.Database(__dirname + '/../db/sqldb.db');
 
-exports.setup = (callback) => {
+exports.setup = (callback1, callback2, callback3) => {
 	db.serialize(() => {
 		db.run("CREATE TABLE IF NOT EXISTS invites(uid text, invite text);", (err) => {
 			if (err) {
+				callback1(false)
 			}
+			callback1(true)
 			console.log("invites database initialized")
 		});
 		db.run("CREATE TABLE IF NOT EXISTS verificationCodes(discordID text, verificationCode text);", (err2) => {
 			if (err2) {
+				callback2(false)
 			}
+			callback2(true)
 			console.log("verificationCodes database initialized")
 		});
-		db.run("CREATE TABLE IF NOT EXISTS verificationCodes(discordID text, verificationCode text);", (err2) => {
+		db.run("CREATE TABLE IF NOT EXISTS whitelist(discordID text);", (err2) => {
 			if (err2) {
+				callback3(false)
 			}
+			callback3(true)
 			console.log("verificationCodes database initialized")
 		});
 	});
@@ -60,6 +66,7 @@ exports.generateVerificationCode = (discordID, callback) => {
 		if (err) {
 			console.error(err)
 			callback(undefined, err)
+			return;
 		} else {
 			console.log(`Verirication code ${verificationCode} added to database for user ${discordID} at row ${this.lastID}`);
 			callback(verificationCode, undefined);
@@ -71,6 +78,7 @@ exports.getDiscordID = (verificationCode, callback) => {
 	db.all('SELECT discordID FROM verificationCodes WHERE verificationCode=?', [verificationCode], function(err,rows) {
 		if (err) {
 			callback(undefined, err)
+			return;
 		}
 		if (rows.length == 0) {
 			callback(undefined, "Verification code does not exist")
@@ -80,14 +88,30 @@ exports.getDiscordID = (verificationCode, callback) => {
 	});
 }
 
-exports.addToWhitelist = () => {
-
+exports.addToWhitelist = (w) => {
+	w.forEach(id => {
+		db.run(`INSERT INTO whitelist(discordID) VALUES(?)`, [id], function(err) {
+			if (err) {
+				console.error(err)
+			} else {
+				console.log(`Whitelist for user ${id} added at row ${this.lastID}`);
+			}
+		});
+	})
 }
 
 exports.removeFromWhitelist = () => {
 	
 }
 
-exports.getWhitelist = () => {
-	
+exports.getWhitelist = (callback) => {
+	db.all('SELECT * FROM whitelist', function(err, rows) {
+		if (err) {
+			callback(undefined, err)
+			return;
+		}
+		let whitelist = rows.map(entry => entry.discordID)
+		let set = new Set(whitelist)
+		callback(set, undefined);
+	});
 }

@@ -104,4 +104,4 @@ dist
 .tern-port
 .DS_Store
 whitelist.csv
-src/sqldb.db
+sqldb.db
