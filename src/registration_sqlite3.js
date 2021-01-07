@@ -88,6 +88,16 @@ exports.getDiscordID = (verificationCode, callback) => {
 	});
 }
 
+exports.deleteVerificationLink = (code) => {
+	db.run(`DELETE FROM verificationCodes WHERE verificationCode=?`, code, function(err) {
+		if (err) {
+			console.error(err)
+		} else {
+			console.log(`verificationCode ${code} deleted`);
+		}
+	});
+}
+
 exports.addToWhitelist = (w) => {
 	w.forEach(id => {
 		db.run(`INSERT INTO whitelist(discordID) VALUES(?)`, [id], function(err) {

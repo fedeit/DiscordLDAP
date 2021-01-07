@@ -70,7 +70,7 @@ exports.setDiscordIdFor = async (uid, password, discordId) => {
 				return "User " + uid + " is already registered!"
 			}
 			console.info("Adding discord id to LDAP user " + uid)
-			await tempClient.modify(user.dn, change);
+			await client.modify(user.dn, change);
 			return undefined;
 		}
 		console.info("Could not find a user with ID " + uid)

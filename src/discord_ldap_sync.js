@@ -92,7 +92,7 @@ exports.findToRemoveDiscordUsers = (discordUsers, ldapUsers) => {
 }
 
 let sendInvites = (people) => {
-	if (process.env.DEVELOPMENT == true) { return; }
+	if (process.env.DEVELOPMENT) { return; }
 	for (const person of people) {
 		if (person.email == undefined || person.uid == undefined) { continue; }
 		db.isInviteSent(person.uid, (isSent) => {
@@ -112,6 +112,7 @@ let sendInvites = (people) => {
 }
 
 let kickUsers = (people) => {
+	if (process.env.DEVELOPMENT) { return; }
 	people.forEach((person) => {
 		// Email the person's email
 		discord.kickMember(person)
@@ -141,6 +142,7 @@ exports.verify = (code, username, password, callback) => {
 		if (discordError === undefined) {
 			let message = "Thank you! You are now registered with your organization!" || process.env.CONFIRMATION_MESSAGE
 			discord.sendMessage(discordID, message)
+			db.deleteVerificationLink(code)
 			db.deleteInvite(username)
 			callback({message: message, verified: true})
 		} else {
