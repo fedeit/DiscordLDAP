@@ -107,11 +107,11 @@ let sendInvites = (people) => {
 			if (!isSent) {
 				console.log("Sending info to ", person.email)
 				// Email the person's email
-				discord.inviteMember(person.email, (token) => {
+				discord.inviteMember(person.email, async (token) => {
 					// Add invite to db
 					db.registerInvite(person.uid, token)
 					// Send the invite to the user via email
-				  	mailer.sendInvite(token, person.email);
+				  	await mailer.sendInvite(token, person.email)
 				})
 			} else {
 				console.log("Invite already sent to", person.email)

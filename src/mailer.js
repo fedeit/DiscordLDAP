@@ -28,25 +28,30 @@ exports.verify = (callback) => {
   });
 }
 
-exports.sendInvite = async (inviteLink, userEmail) => {
-  var replacements = {
-       inviteLink: inviteLink
-  };
-  let htmlTemplate = loadTemplate(replacements);
-  // send mail with defined transport object
-  let config = {
-    from: process.env.SMTP_FROM, // sender address
-    to: userEmail, // list of receivers
-    subject: `Discord Invite from ${process.env.ORGANIZATION_NAME}`, // Subject line
-    text: htmlTemplate, // plain text body
-    html: htmlTemplate, // html body
-  }
-  transporter.sendMail(config, (err, info) => {
-    if (error) {
-        console.error("MAIL ERROR is ", error);
-    } else {
-        console.log('Email sent: ', info);
+exports.sendInvite = async (inviteCode, userEmail) => {
+  return new Promise((resolve,reject) => {
+    let inviteLink = "https://discord.gg/" + inviteCode;
+    var replacements = {
+         inviteLink: inviteLink
+    };
+    let htmlTemplate = loadTemplate(replacements);
+    // send mail with defined transport object
+    let config = {
+      from: process.env.SMTP_FROM, // sender address
+      to: userEmail, // list of receivers
+      subject: `Discord Invite from ${process.env.ORGANIZATION_NAME}`, // Subject line
+      text: htmlTemplate, // plain text body
+      html: htmlTemplate, // html body
     }
+    transporter.sendMail(config, (err, info) => {
+      if (error) {
+          console.error("MAIL ERROR is ", error);
+          resolve(false);
+      } else {
+          console.log('Email sent: ', info);
+          resolve(true);
+      }
+    });
   });
 }
 
