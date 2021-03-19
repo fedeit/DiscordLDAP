@@ -30,7 +30,7 @@ exports.verify = (callback) => {
 
 exports.sendInvite = async (inviteCode, userEmail) => {
   return new Promise((resolve,reject) => {
-    let inviteLink = "https://discord.gg/" + inviteCode;
+    let inviteLink = inviteCode;
     var replacements = {
          inviteLink: inviteLink
     };

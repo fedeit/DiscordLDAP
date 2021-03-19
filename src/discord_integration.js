@@ -119,7 +119,7 @@ exports.inviteMember = (email, callback) => {
 	console.info(`Found channel ${process.env.DISCORD_CHANNEL} to add user`)
 	// Define options
 	let options = {
-		maxAge: process.env.MAX_INVITE_AGE,
+		maxAge: parseInt(process.env.MAX_INVITE_AGE),
 		maxUses: 1,
 		unique: true,
 		reason: `You were added to the ${process.env.ORGANIZATION_NAME} Discord from the users directory.`
@@ -130,7 +130,7 @@ exports.inviteMember = (email, callback) => {
 	.then(invite => {
 		// Print info and callback
 	  	console.info(`Created an invite with a code of ${invite}`);
-	  	callback(invite);
+	  	callback(invite.toString());
 	})
 	.catch(console.error);
 }
