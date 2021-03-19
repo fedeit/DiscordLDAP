@@ -60,4 +60,6 @@ The platform runs on a cron task every a certain amount of time defined by the E
 
 ## Other
 The organization name is used in the email invite and bot messages sent to the user. 
+```
 ORGANIZATION_NAME=DiscordLDAP
+```

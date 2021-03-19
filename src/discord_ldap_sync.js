@@ -43,12 +43,16 @@ db.setup((invitesConnected) => {
 let startSync = () => {
 	if (!(SystemStatus.isSetup())) { return }
 	discord.getMembers(async (discordUsers) => {
-		let ldapResponse = await ldap.getUsers(true);
-		let toInvite = exports.findToAddDiscordUsers(ldapResponse);
-		sendInvites(toInvite)
-		let toRemove = exports.findToRemoveDiscordUsers(discordUsers, ldapResponse);
-		toRemove = filterSet(toRemove, whitelistedUsers)
-		kickUsers(toRemove)
+		if (process.env.AUTO_INVITE == "TRUE") {
+			let ldapResponse = await ldap.getUsers(true);
+			let toInvite = exports.findToAddDiscordUsers(ldapResponse);
+			sendInvites(toInvite)
+		}
+		if (process.env.AUTO_KICK == "TRUE") {
+			let toRemove = exports.findToRemoveDiscordUsers(discordUsers, ldapResponse);
+			toRemove = filterSet(toRemove, whitelistedUsers)
+			kickUsers(toRemove)
+		}
 		console.log("Completed sync process")
 	});
 }
@@ -92,7 +96,7 @@ exports.findToRemoveDiscordUsers = (discordUsers, ldapUsers) => {
 }
 
 let sendInvites = (people) => {
-	if (process.env.DEVELOPMENT) { return; }
+	if (process.env.DEVELOPMENT == "TRUE") { return; }
 	for (const person of people) {
 		if (person.email == undefined || person.uid == undefined) { continue; }
 		db.isInviteSent(person.uid, (isSent) => {
@@ -100,8 +104,9 @@ let sendInvites = (people) => {
 				console.log("Sending info to ", person.email)
 				// Email the person's email
 				discord.inviteMember(person.email, (token) => {
-					// Add to db
+					// Add invite to db
 					db.registerInvite(person.uid, token)
+					// Send the invite to the user via email
 				  	mailer.sendInvite(token, person.email);
 				})
 			} else {
@@ -112,9 +117,8 @@ let sendInvites = (people) => {
 }
 
 let kickUsers = (people) => {
-	if (process.env.DEVELOPMENT) { return; }
+	if (process.env.DEVELOPMENT == "TRUE") { return; }
 	people.forEach((person) => {
-		// Email the person's email
 		discord.kickMember(person)
 	})
 }

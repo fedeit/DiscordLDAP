@@ -11,20 +11,21 @@ app.use(express.static(path.join(__dirname, '/web-ui/build')));
 
 app.post('/verify', (req, res) => {
 	const { username, password, code } = req.body
+	username = username.trim()
 	if (!discordLDAP.isSetup()) {
-		return res.send({ message: "System down! Please retry in a few minutes or contact a system admin", verified: false })
+		return res.send({ message: `System down! Please retry in a few minutes or contact a system administrator at ${process.env.SUPPORT_EMAIL}`, verified: false })
 	}
 	if (code == undefined || username == undefined || password == undefined) {
 		return res.send({ message: "Username and password cannot be empty", verified: false })
 	}
 	console.log("Received verification request from " + username + " with code " + code)
 	discordLDAP.verify(code, username, password, (result) => {
-		res.send(result);
+		res.send(result)
 	});
 })
 
 app.get('/api/discordInit', (req, res) => {
-	res.redirect('/status');
+	res.redirect('/status')
 })
 
 app.get('/api/status', (req, res) => {
