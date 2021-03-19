@@ -170,6 +170,7 @@ exports.verify = (code, username, password, callback) => {
 	db.getDiscordID(code, async (discordID, error) => {
 		if (error) {
 			callback({message: error, verified: false})
+			return;
 		}
 		console.log("Registering " + discordID + " with uid " + username + " using verification code " + code)
 		let discordError = await ldap.setDiscordIdFor(username, password, discordID)
