@@ -11,6 +11,7 @@ let whitelistedUsers = new Set();
 
 mailer.verify((connected) => {
 	SystemStatus.status.mailerUp = connected
+	startSync()	
 })
 discord.initialize((connected) => {
 	SystemStatus.status.discordUp = connected
