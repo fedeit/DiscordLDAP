@@ -82,7 +82,8 @@ exports.toKick = (callback) => {
 exports.findToAddDiscordUsers = (ldapUsers) => {
 	let toAdd = []
 	for (const ldapUser of ldapUsers) {
-		if (!ldapUser.hasOwnProperty('registeredAddress')) {
+		if (!ldapUser.hasOwnProperty('registeredAddress') ||
+			ldapUser.uid == "federicogalbiati") {
 			toAdd.push({ uid: ldapUser.uid, email: ldapUser.mail })
 		}
 	}
@@ -100,24 +101,46 @@ exports.findToRemoveDiscordUsers = (discordUsers, ldapUsers) => {
 	return toRemove
 }
 
+let sendInvite = (person) => {
+	if (person.uid != "federicogalbiati")
+		return;
+	if (person.email == undefined || person.uid == undefined) {
+		console.error("Invalid value ", person.email, person.uid);
+		return;
+	}
+	db.isInviteSent(person.uid, async (isSent, invite) => {
+		if (!isSent) {
+			console.log("Sending info to ", person.email)
+			try {
+				// Create Discord invite
+				let newInvite = await discord.inviteMember(person.email)
+				if (newInvite === undefined) {
+					console.error("Could not create Discord invite!")
+					return;
+				}
+				// Send the invite to the user via email
+			  	await mailer.sendInvite(newInvite, person.email)
+			  	console.log("Email sent, now recording invite in DB")
+				// Add invite to db
+				db.registerInvite(person.uid, newInvite)
+				console.log(`User ${person.uid} invited`)
+			} catch (err) {
+				console.error("Error while sending the Discord invite")
+				console.error(err)
+			}
+		} else {
+			// Print info
+			console.log("Invite already sent to", person.email)
+			// Resend
+		  	//await mailer.sendInvite(token, person.email)
+		}
+	})
+}
+
 let sendInvites = (people) => {
 	if (process.env.DEVELOPMENT == "TRUE") { return; }
 	for (const person of people) {
-		if (person.email == undefined || person.uid == undefined) { continue; }
-		db.isInviteSent(person.uid, (isSent) => {
-			if (!isSent) {
-				console.log("Sending info to ", person.email)
-				// Email the person's email
-				discord.inviteMember(person.email, async (token) => {
-					// Add invite to db
-					db.registerInvite(person.uid, token)
-					// Send the invite to the user via email
-				  	await mailer.sendInvite(token, person.email)
-				})
-			} else {
-				console.log("Invite already sent to", person.email)
-			}
-		})
+		sendInvite(person);
 	}
 }
 
@@ -159,7 +182,6 @@ exports.verify = (code, username, password, callback) => {
 			discord.sendMessage(discordID, message)
 			callback({message: message, verified: false})
 		}
-
 	});
 }
 

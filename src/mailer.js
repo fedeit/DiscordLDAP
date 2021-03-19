@@ -29,7 +29,8 @@ exports.verify = (callback) => {
 }
 
 exports.sendInvite = async (inviteCode, userEmail) => {
-  return new Promise((resolve,reject) => {
+  return new Promise((resolve, reject) => {
+    console.log("Sending email invite ", inviteCode, " to ", userEmail)
     let inviteLink = inviteCode;
     var replacements = {
          inviteLink: inviteLink
@@ -44,11 +45,11 @@ exports.sendInvite = async (inviteCode, userEmail) => {
       html: htmlTemplate, // html body
     }
     transporter.sendMail(config, (err, info) => {
-      if (error) {
+      if (err) {
           console.error("MAIL ERROR is ", error);
-          resolve(false);
+          reject(false);
       } else {
-          console.log('Email sent: ', info);
+          console.log('Email sent: ', info.response);
           resolve(true);
       }
     });

@@ -112,7 +112,7 @@ let sendVerificationLink = async (member) => {
 	})
 }
 
-exports.inviteMember = (email, callback) => {
+exports.inviteMember = async (email, callback) => {
 	console.info(`Inviting member ${email} to Discord`)
 	// Get the base channel where to add people
 	const channel = guild.channels.resolve(process.env.DISCORD_CHANNEL);
@@ -125,12 +125,15 @@ exports.inviteMember = (email, callback) => {
 		reason: `You were added to the ${process.env.ORGANIZATION_NAME} Discord from the users directory.`
 	}
 	console.info("Creating Discord invite")
-	// Create a discord invite with specified options
-	channel.createInvite(options)
-	.then(invite => {
+	try {
+		// Create a discord invite with specified options
+		let invite = await channel.createInvite(options)
 		// Print info and callback
 	  	console.info(`Created an invite with a code of ${invite}`);
-	  	callback(invite.toString());
-	})
-	.catch(console.error);
+	  	return invite.toString();
+  	} catch(err) {
+		console.error(err)
+		return undefined;
+  	}
 }
+
