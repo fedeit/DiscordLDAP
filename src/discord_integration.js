@@ -68,6 +68,7 @@ exports.getMembers = (callback) => {
 }
 
 exports.kickMember = (memberId) => {
+	if (process.env.DEVELOPMENT == "TRUE") { return; }
 	console.log("Kicking member " + memberId)
 	// Get the member based on their Id
 	let member = guild.members.fetch(memberId)
