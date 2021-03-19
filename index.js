@@ -10,7 +10,7 @@ app.use(express.json())
 app.use(express.static(path.join(__dirname, '/web-ui/build')));
 
 app.post('/verify', (req, res) => {
-	const { username, password, code } = req.body
+	let { username, password, code } = req.body
 	username = username.trim()
 	if (!discordLDAP.isSetup()) {
 		return res.send({ message: `System down! Please retry in a few minutes or contact a system administrator at ${process.env.SUPPORT_EMAIL}`, verified: false })
