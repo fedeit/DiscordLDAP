@@ -1,10 +1,12 @@
 version: '3.3'
 services:
     discordldap:
+        image: fedeit/discordldap
+        restart: always
         env_file:
             - ./.env
         ports:
             - '80:80'
-        image: fedeit/discordldap
         volumes:
             - ./db:/usr/src/app/db
+            - ./templates:/usr/src/app/templates
