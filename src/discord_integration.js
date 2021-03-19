@@ -103,7 +103,7 @@ let sendVerificationLink = async (member) => {
 		return
 	}
 	// Generate verification code
-	console.log("Sending verification link to user ", member.displayName)
+	console.log("Sending verification link to user ", member.username)
 	db.generateVerificationCode(member.id, (code, error) => {
 		if (error) {
 			member.send(error)
