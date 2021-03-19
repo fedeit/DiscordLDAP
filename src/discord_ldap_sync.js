@@ -45,13 +45,17 @@ let startSync = () => {
 	discord.getMembers(async (discordUsers) => {
 		if (process.env.AUTO_INVITE == "TRUE") {
 			let ldapResponse = await ldap.getUsers(true);
-			let toInvite = exports.findToAddDiscordUsers(ldapResponse);
+			let toInvite = exports.findToAddDiscordUsers(ldapResponse)
 			sendInvites(toInvite)
+		} else {
+			console.log("Skipping auto invites (AUTO_INVITE!=TRUE)")
 		}
 		if (process.env.AUTO_KICK == "TRUE") {
-			let toRemove = exports.findToRemoveDiscordUsers(discordUsers, ldapResponse);
+			let toRemove = exports.findToRemoveDiscordUsers(discordUsers, ldapResponse)
 			toRemove = filterSet(toRemove, whitelistedUsers)
 			kickUsers(toRemove)
+		} else {
+			console.log("Skipping auto kick (AUTO_KICK!=TRUE)")
 		}
 		console.log("Completed sync process")
 	});

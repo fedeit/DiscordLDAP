@@ -1,6 +1,15 @@
 const md5 = require('md5');
+const path = require('path')
 var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database(__dirname + '/../db/sqldb.db');
+
+const dbPath = path.resolve(__dirname, '../db/sqldb.db')
+let db = new sqlite3.Database(dbPath, (err) => {
+  if (err) {
+    console.error(err.message);
+    return;
+  }
+  console.log('Connected to the database at ', dbPath);
+});
 
 exports.setup = (callback1, callback2, callback3) => {
 	db.serialize(() => {

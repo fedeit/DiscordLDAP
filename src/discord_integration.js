@@ -1,6 +1,6 @@
+const db = require('./registration_sqlite3.js')
 const Discord = require('discord.js');
 const ldap = require('./ldap_client.js')
-const db = require('./registration_sqlite3.js')
 
 // Vars to be defined later
 var guild;
