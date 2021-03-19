@@ -6,3 +6,5 @@ services:
         ports:
             - '80:80'
         image: fedeit/discordldap
+        volumes:
+            - ./db:/usr/src/app/db

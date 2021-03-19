@@ -1,6 +1,6 @@
+const db = require('./registration_sqlite3.js')
 const Discord = require('discord.js');
 const ldap = require('./ldap_client.js')
-const db = require('./registration_sqlite3.js')
 
 // Vars to be defined later
 var guild;
@@ -123,7 +123,7 @@ exports.inviteMember = (email, callback) => {
 	// Create a discord invite with specified options
 	channel.createInvite(options)
 	.then(invite => {
-		// Send the invite to the user via email
+		// Print info and callback
 	  	console.info(`Created an invite with a code of ${invite}`);
 	  	callback(invite);
 	})
