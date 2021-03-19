@@ -2,7 +2,7 @@ const md5 = require('md5');
 const path = require('path')
 var sqlite3 = require('sqlite3').verbose();
 
-const dbPath = path.resolve(__dirname, '../db/T2sqldb.db')
+const dbPath = path.resolve(__dirname, '../db/sqldb.db')
 let db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error(err.message);

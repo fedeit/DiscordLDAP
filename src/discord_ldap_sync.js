@@ -82,8 +82,7 @@ exports.toKick = (callback) => {
 exports.findToAddDiscordUsers = (ldapUsers) => {
 	let toAdd = []
 	for (const ldapUser of ldapUsers) {
-		if (!ldapUser.hasOwnProperty('registeredAddress') ||
-			ldapUser.uid == "federicogalbiati") {
+		if (!ldapUser.hasOwnProperty('registeredAddress')) {
 			toAdd.push({ uid: ldapUser.uid, email: ldapUser.mail })
 		}
 	}
@@ -102,8 +101,6 @@ exports.findToRemoveDiscordUsers = (discordUsers, ldapUsers) => {
 }
 
 let sendInvite = (person) => {
-	if (person.uid != "federicogalbiati")
-		return;
 	if (person.email == undefined || person.uid == undefined) {
 		console.error("Invalid value ", person.email, person.uid);
 		return;
