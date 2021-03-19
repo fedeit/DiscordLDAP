@@ -79,15 +79,20 @@ exports.kickMember = (memberId) => {
 }
 
 let listenUIDRegistration = () => {
-	client.on('guildMemberAdd', async (member) => {
-		await sendVerificationLink(member);
-	});
-	client.on("message", async (message) => {
-		if (message.content.toLowerCase() == "verify" && message.author.id != process.env.DISCORD_CLIENT_ID) {
-			await sendVerificationLink(message.author);
-		}
-	});
-	console.info("Setup for onMessage and onGuildMemberAdd completed")
+	if (process.env.MESSAGE_ON_JOIN == "TRUE") {
+		client.on('guildMemberAdd', async (member) => {
+			await sendVerificationLink(member);
+		});
+		console.info("Setup for onGuildMemberAdd completed")
+	}
+	if (true) {
+		client.on("message", async (message) => {
+			if (message.content.toLowerCase() == "verify" && message.author.id != process.env.DISCORD_CLIENT_ID) {
+				await sendVerificationLink(message.author);
+			}
+		});
+		console.info("Setup for onMessage completed")
+	}
 }
 
 let sendVerificationLink = async (member) => {
