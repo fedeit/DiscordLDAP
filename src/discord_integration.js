@@ -99,16 +99,19 @@ let listenUIDRegistration = () => {
 let sendVerificationLink = async (member) => {
 	// Check user is already registered
 	if (await ldap.isDiscordIdInUse(member)) {
+		console.log("User tried registering with registered Discord id:", member)
 		member.send("Your Discord id is already registered.")
 		return
 	}
 	// Generate verification code
-	console.log("Sending verification link to user", member.username)
+	console.log("Sending verification link to", member)
 	db.generateVerificationCode(member.id, (code, error) => {
 		if (error) {
+			console.error("...could not generate verification link")
 			member.send(error)
 		} else {
 			member.send("Here's a verification link! Make sure you don't share it with others as it is unique and one-time for you: " + process.env.API_HOSTNAME + code)
+			console.error("...generated and sent verification link successfully")
 		}
 	})
 }
