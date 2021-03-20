@@ -128,7 +128,7 @@ let sendInvite = (person) => {
 				// Add invite to db
 				db.registerInvite(person.uid, newInvite)
 				console.log(`User ${person.uid} invited`)
-				return 0;
+				return;
 			} catch (err) {
 				console.error("Error while sending the Discord invite")
 				console.error(err)
@@ -138,19 +138,16 @@ let sendInvite = (person) => {
 			// Print info
 			// console.log("Invite already sent to", person.email)
 			// Resend
-		  	//await mailer.sendInvite(token, person.email)
-			return 1;
+		  	// await mailer.sendInvite(token, person.email)
 		}
 	})
 }
 
 let sendInvites = (people) => {
 	if (process.env.DEVELOPMENT == "TRUE") { return; }
-	let alreadySent = 0;
 	for (const person of people) {
-		alreadySent += sendInvite(person);
+		sendInvite(person);
 	}
-	console.log("Already sent", alreadySent, "invites");
 }
 
 let kickUsers = (people) => {
@@ -201,7 +198,7 @@ exports.getMembers = async () => {
 }
 
 
-cron.schedule('30 * * * *', () => {
+cron.schedule('*/15 * * * *', () => {
 	console.log("Cron Schedule: Syncing LDAP and Discord members")
 	startSync();
 });
