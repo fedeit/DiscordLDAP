@@ -82,7 +82,7 @@ exports.kickMember = (memberId) => {
 let listenUIDRegistration = () => {
 	if (process.env.MESSAGE_ON_JOIN == "TRUE") {
 		client.on('guildMemberAdd', async (member) => {
-			await sendVerificationLink(member);
+			await sendVerificationLink(member.user);
 		});
 		console.info("Setup for onGuildMemberAdd completed")
 	}
