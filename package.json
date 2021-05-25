@@ -15,7 +15,7 @@
     "discord.js": "^12.5.1",
     "dotenv-defaults": "^2.0.1",
     "express": "^4.17.1",
-    "handlebars": "^4.7.6",
+    "handlebars": "^4.7.7",
     "jsonwebtoken": "^8.5.1",
     "ldapjs": "^2.2.3",
     "ldapjs-client": "^0.1.1",
